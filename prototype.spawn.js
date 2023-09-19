@@ -19,12 +19,12 @@ const spawnExtension = {
             }
         }
         if (needInit) {
-           for (conf of Game.creepConfigs) {
+            for (conf of Game.creepConfigs) {
                 if (!Game.creeps) {
-                 return
+                    return
                 }
                 let creepsInRoom = _.filter(Game.creeps, c => c.memory.role == conf.role);
-                if (conf.number > 0)  {
+                if (conf.number > 0) {
                     if (!creepsInRoom) {
                         for (let i = 0; i < conf.number; i++) {
                             this.addTask(conf.role);
@@ -32,18 +32,24 @@ const spawnExtension = {
                     }
                     if (creepsInRoom && creepsInRoom.length < conf.number) {
                         for (let i = 0; i < conf.number - creepsInRoom.length; i++) {
-                           this.addTask(conf.role);
-                       }
-                    } 
+                            this.addTask(conf.role);
+                        }
+                    }
                 }
-            
-            } 
+
+            }
         }
     },
     // 检查生产任务队列
     work() {
+        // 检查Spawn+Extension能量总和，是否够生产基本单位
+        if (this.room.energyAvailable <= 500 && Object.keys(Game.creeps).length < 2) {
+            //确保最低挖矿和运输标准
+            this.memory.spawnList = ["lorry", "harvester", "harvester", "lorry"];
+        }
         // 自己已经在生成了 / 内存里没有生成队列 / 生产队列为空 就啥都不干
         if (this.spawning || !this.memory.spawnList || this.memory.spawnList.length == 0) return
+
         // 进行生成
         const spawnSuccess = this.mainSpawn(this.memory.spawnList[0])
         // 生成成功后移除任务
@@ -63,9 +69,9 @@ const spawnExtension = {
         let conf = _.find(Game.creepConfigs, v => v.role == role)
         if (conf) {
             let creepName = this.generateCreepName(role);
-            let respCode = this.spawnCreep(conf.bodys, creepName, { memory: { role: role, opt: conf.opt}  });
+            let respCode = this.spawnCreep(conf.bodys, creepName, { memory: { role: role, opt: conf.opt } });
             if (respCode == ERR_NAME_EXISTS) {
-                console.log("[自动生产Creep] creep重名了, 名字为："+creepName)
+                console.log("[自动生产Creep] creep重名了, 名字为：" + creepName)
                 return false
             }
             if (respCode == ERR_BUSY) {
@@ -77,17 +83,17 @@ const spawnExtension = {
                 return false
             }
             if (respCode == 0) {
-                console.log("[自动生产Creep]正在生产爬爬，类型为："+ role +", 名字为："+creepName)
-                return true    
+                console.log("[自动生产Creep]正在生产爬爬，类型为：" + role + ", 名字为：" + creepName)
+                return true
             }
-            console.log("[自动生产Creep] unknown error: "+ respCode)
+            console.log("[自动生产Creep] unknown error: " + respCode)
             return false
         }
     },
 
     generateCreepName(role) {
         if (!this.memory.autoNum) this.memory.autoNum = 1
-        let creepName = role+"-"+ this.memory.autoNum;
+        let creepName = role + "-" + this.memory.autoNum;
         this.memory.autoNum++
         return creepName
     }

@@ -3,7 +3,6 @@ var roles = {
     outsideHarvester: require('role.outsideHarvester'),
     upgrader: require('role.upgrader'),
     builder: require('role.builder'),
-    carrier: require('role.carrier'),
     repairer: require('role.repairer'),
     lorry: require('role.lorry'),
 };
@@ -39,6 +38,25 @@ const creepExtension = {
         }
         return true
     },
+    //通用方法：捡垃圾
+    getDroppedEnergy() {
+        const droppedTargets = this.room.find(FIND_DROPPED_RESOURCES);
+        if(droppedTargets && droppedTargets.length > 0) {
+            if(this.pickup(droppedTargets[0]) == ERR_NOT_IN_RANGE) {
+                this.moveTo(droppedTargets[0]);
+                return true
+            }
+        }
+        const tombstonesTargets = this.room.find(FIND_TOMBSTONES);
+        if(tombstonesTargets && tombstonesTargets.length > 0) {
+            if(this.withdraw(tombstonesTargets[0]) == ERR_NOT_IN_RANGE) {
+                this.moveTo(tombstonesTargets[0]);
+                return true
+            }
+        }
+        return false
+    },
+
     //通用方法：获取能量
     getEnergy(targetIds, structureTypes) {
         //如果背包已满，直接返回
